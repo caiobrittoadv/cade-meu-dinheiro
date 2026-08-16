@@ -1,0 +1,26 @@
+:root {
+  --color-primary: #6c3bff;
+  --color-background: #f7f7fa;
+  --color-surface: #ffffff;
+  --color-text-primary: #17171f;
+  --color-text-secondary: #6f7180;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0d0d12;
+    --color-surface: #17171f;
+    --color-text-primary: #ffffff;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}

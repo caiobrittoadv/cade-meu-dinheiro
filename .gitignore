@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Prisma
+apps/api/prisma/migrations/**/migration.sql.bak
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Storage (dev object storage data)
+infrastructure/storage-data/
+infrastructure/postgres-data/
+infrastructure/redis-data/
+
+# Secrets / keys
+*.pem
+*.key
+secrets/

@@ -1,0 +1,794 @@
+// =============================================================================
+// Cadê Meu Dinheiro? — Schema Prisma (Fase 01 — Fundação)
+//
+// Baseado no Documento 05 (Modelo de Dados) e escopado pelo Documento 10
+// (Plano de Execução da Fase 01, F01.17).
+//
+// Núcleo (F01.17, "primeiro núcleo"):
+//   User, UserProfile, FinancialSpace, SpaceMember, Account, Category, Transaction
+//
+// Estruturas relacionadas preparadas nesta fase:
+//   CreditCard, Invoice, InstallmentPlan, Installment, Recurrence, Goal,
+//   GoalContribution, Document, DocumentProcessing, Extraction,
+//   FinancialProposal, ProposalItem, DuplicateCandidate, Conversation,
+//   Message, AIClassification, UserLearning, Notification, AuditLog
+//
+// Deliberadamente FORA do escopo desta fase (não listadas no F01.17):
+//   Transfer, Account Balance Snapshot, Financial Institution, Extracted Field
+//   — serão avaliadas quando o Motor Financeiro (Documento 06) ou o Motor de
+//   Captura (Documento 07) forem implementados.
+//
+// Regra crítica (Documento 10, F01.17): este schema define ESTRUTURA.
+// Nenhuma regra financeira (saldo, competência, parcelamento, etc.) é
+// implementada aqui — isso pertence ao Motor Financeiro (Documento 06).
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Enums (somente onde o Documento 05 define valores explícitos)
+// -----------------------------------------------------------------------------
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+  DELETED
+}
+
+enum SpaceType {
+  PERSONAL
+  BUSINESS
+  SHARED
+}
+
+enum SpaceStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  DIGITAL
+  CASH
+  OTHER
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+  BOTH
+}
+
+enum InvoiceStatus {
+  OPEN
+  CLOSED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum TransactionStatus {
+  CONFIRMED
+  PENDING
+  CANCELLED
+}
+
+enum TransactionSourceType {
+  MANUAL
+  DOCUMENT
+  INVOICE_IMPORT
+  BANK_IMPORT
+  OPEN_FINANCE
+  SYSTEM
+}
+
+enum InstallmentPlanStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum RecurrenceFrequency {
+  MONTHLY
+  WEEKLY
+  YEARLY
+  CUSTOM
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum DocumentType {
+  RECEIPT
+  INVOICE
+  BANK_STATEMENT
+  CARD_STATEMENT
+  PIX_RECEIPT
+  BILL
+  OTHER
+  UNKNOWN
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PROCESSING
+  PROCESSED
+  REVIEW_REQUIRED
+  COMPLETED
+  FAILED
+  DELETED
+}
+
+enum ProcessingStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ProposalStatus {
+  PROPOSED
+  REVIEW_REQUIRED
+  CONFIRMED
+  REJECTED
+  DUPLICATE
+}
+
+enum DuplicateStatus {
+  PENDING
+  CONFIRMED_DUPLICATE
+  NOT_DUPLICATE
+  IGNORED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+enum NotificationType {
+  DOCUMENT_READY
+  REVIEW_REQUIRED
+  DUPLICATE_FOUND
+  INVOICE_IMPORTED
+  MONTHLY_CLOSING
+  ALERT
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  CONFIRM
+  REJECT
+  IMPORT
+  PROCESS
+}
+
+// -----------------------------------------------------------------------------
+// Núcleo — Identidade e Espaço Financeiro
+// -----------------------------------------------------------------------------
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  name         String
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  status       UserStatus @default(PENDING)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  lastLoginAt  DateTime?  @map("last_login_at")
+
+  profile           UserProfile?
+  ownedSpaces        FinancialSpace[]      @relation("SpaceOwner")
+  memberships        SpaceMember[]
+  uploadedDocuments  Document[]
+  createdTransactions Transaction[]
+  notifications      Notification[]
+  conversations       Conversation[]
+  auditLogs           AuditLog[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  displayName String?  @map("display_name")
+  avatarUrl   String?  @map("avatar_url")
+  locale      String   @default("pt-BR")
+  timezone    String   @default("America/Sao_Paulo")
+  currency    String   @default("BRL")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model FinancialSpace {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  type        SpaceType   @default(PERSONAL)
+  currency    String      @default("BRL")
+  ownerUserId String      @map("owner_user_id") @db.Uuid
+  status      SpaceStatus @default(ACTIVE)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  owner User @relation("SpaceOwner", fields: [ownerUserId], references: [id])
+
+  members             SpaceMember[]
+  accounts            Account[]
+  creditCards         CreditCard[]
+  categories          Category[]
+  transactions        Transaction[]
+  installmentPlans    InstallmentPlan[]
+  recurrences         Recurrence[]
+  goals               Goal[]
+  documents           Document[]
+  financialProposals  FinancialProposal[]
+  duplicateCandidates DuplicateCandidate[]
+  aiClassifications   AIClassification[]
+  userLearnings       UserLearning[]
+  notifications       Notification[]
+  conversations       Conversation[]
+  auditLogs           AuditLog[]
+
+  @@map("financial_spaces")
+}
+
+model SpaceMember {
+  id        String    @id @default(uuid()) @db.Uuid
+  spaceId   String    @map("space_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  role      MemberRole @default(OWNER)
+  status    String    @default("ACTIVE")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  space FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([spaceId, userId])
+  @@index([spaceId])
+  @@map("space_members")
+}
+
+// -----------------------------------------------------------------------------
+// Contas, Categorias e Cartões
+// -----------------------------------------------------------------------------
+
+model Account {
+  id               String      @id @default(uuid()) @db.Uuid
+  spaceId          String      @map("space_id") @db.Uuid
+  name             String
+  institutionName  String?     @map("institution_name")
+  institutionCode  String?     @map("institution_code")
+  type             AccountType @default(CHECKING)
+  initialBalance   Decimal     @default(0) @map("initial_balance") @db.Decimal(14, 2)
+  currency         String      @default("BRL")
+  status           String      @default("ACTIVE")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  archivedAt       DateTime?   @map("archived_at")
+
+  space        FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  recurrences  Recurrence[]
+  financialProposals FinancialProposal[]
+
+  @@index([spaceId])
+  @@map("accounts")
+}
+
+model Category {
+  id        String       @id @default(uuid()) @db.Uuid
+  spaceId   String       @map("space_id") @db.Uuid
+  name      String
+  type      CategoryType @default(EXPENSE)
+  parentId  String?      @map("parent_id") @db.Uuid
+  icon      String?
+  color     String?
+  isSystem  Boolean      @default(false) @map("is_system")
+  status    String       @default("ACTIVE")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  space    FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  parent   Category?      @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[]     @relation("CategoryHierarchy")
+
+  transactions        Transaction[]
+  recurrences          Recurrence[]
+  goals                 Goal[]
+  financialProposals    FinancialProposal[]
+  userLearnings         UserLearning[]
+
+  @@index([spaceId])
+  @@map("categories")
+}
+
+model CreditCard {
+  id              String   @id @default(uuid()) @db.Uuid
+  spaceId         String   @map("space_id") @db.Uuid
+  institutionName String?  @map("institution_name")
+  institutionCode String?  @map("institution_code")
+  name            String
+  lastFourDigits  String   @map("last_four_digits")
+  creditLimit     Decimal  @map("credit_limit") @db.Decimal(14, 2)
+  closingDay      Int      @map("closing_day")
+  dueDay          Int      @map("due_day")
+  status          String   @default("ACTIVE")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  space        FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  invoices     Invoice[]
+  transactions Transaction[]
+  recurrences  Recurrence[]
+  financialProposals FinancialProposal[]
+
+  @@index([spaceId])
+  @@map("credit_cards")
+}
+
+model Invoice {
+  id              String        @id @default(uuid()) @db.Uuid
+  creditCardId    String        @map("credit_card_id") @db.Uuid
+  referenceMonth  DateTime      @map("reference_month") @db.Date
+  closingDate     DateTime      @map("closing_date") @db.Date
+  dueDate         DateTime      @map("due_date") @db.Date
+  totalAmount     Decimal       @default(0) @map("total_amount") @db.Decimal(14, 2)
+  status          InvoiceStatus @default(OPEN)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  creditCard   CreditCard    @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  installments Installment[]
+  financialProposals FinancialProposal[]
+
+  @@index([creditCardId])
+  @@map("invoices")
+}
+
+// -----------------------------------------------------------------------------
+// Núcleo Financeiro — Transaction
+// -----------------------------------------------------------------------------
+
+model Transaction {
+  id              String                @id @default(uuid()) @db.Uuid
+  spaceId         String                @map("space_id") @db.Uuid
+  accountId       String?               @map("account_id") @db.Uuid
+  creditCardId    String?               @map("credit_card_id") @db.Uuid
+  invoiceId       String?               @map("invoice_id") @db.Uuid
+  categoryId      String?               @map("category_id") @db.Uuid
+  type            TransactionType
+  description     String
+  amount          Decimal               @db.Decimal(14, 2)
+  transactionDate DateTime              @map("transaction_date")
+  competenceDate  DateTime?             @map("competence_date")
+  paymentDate     DateTime?             @map("payment_date")
+  status          TransactionStatus     @default(PENDING)
+  sourceType      TransactionSourceType @default(MANUAL) @map("source_type")
+  sourceId        String?               @map("source_id") @db.Uuid
+  notes           String?
+  createdBy       String?               @map("created_by") @db.Uuid
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+  deletedAt       DateTime?             @map("deleted_at")
+
+  space      FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  account    Account?       @relation(fields: [accountId], references: [id])
+  creditCard CreditCard?    @relation(fields: [creditCardId], references: [id])
+  invoice    Invoice?       @relation(fields: [invoiceId], references: [id])
+  category   Category?      @relation(fields: [categoryId], references: [id])
+  creator    User?          @relation(fields: [createdBy], references: [id])
+
+  installments        Installment[]
+  goalContributions    GoalContribution[]
+  duplicatesAsSource   DuplicateCandidate[] @relation("DuplicateSource")
+  duplicatesAsCandidate DuplicateCandidate[] @relation("DuplicateCandidate")
+
+  @@index([spaceId])
+  @@index([spaceId, transactionDate])
+  @@index([spaceId, type, transactionDate])
+  @@index([spaceId, status])
+  @@index([accountId])
+  @@index([creditCardId])
+  @@index([invoiceId])
+  @@index([categoryId])
+  @@index([sourceType])
+  @@map("transactions")
+}
+
+// -----------------------------------------------------------------------------
+// Parcelamento e Recorrência
+// -----------------------------------------------------------------------------
+
+model InstallmentPlan {
+  id                 String                @id @default(uuid()) @db.Uuid
+  spaceId            String                @map("space_id") @db.Uuid
+  description        String
+  totalAmount        Decimal               @map("total_amount") @db.Decimal(14, 2)
+  installmentsCount  Int                   @map("installments_count")
+  installmentAmount  Decimal               @map("installment_amount") @db.Decimal(14, 2)
+  startDate          DateTime              @map("start_date")
+  status             InstallmentPlanStatus @default(ACTIVE)
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+
+  space        FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  installments Installment[]
+
+  @@index([spaceId])
+  @@map("installment_plans")
+}
+
+model Installment {
+  id                 String   @id @default(uuid()) @db.Uuid
+  installmentPlanId  String   @map("installment_plan_id") @db.Uuid
+  invoiceId          String?  @map("invoice_id") @db.Uuid
+  transactionId       String? @map("transaction_id") @db.Uuid
+  installmentNumber   Int     @map("installment_number")
+  amount              Decimal @db.Decimal(14, 2)
+  dueDate             DateTime @map("due_date")
+  status              String  @default("PENDING")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  installmentPlan InstallmentPlan @relation(fields: [installmentPlanId], references: [id], onDelete: Cascade)
+  invoice         Invoice?        @relation(fields: [invoiceId], references: [id])
+  transaction     Transaction?    @relation(fields: [transactionId], references: [id])
+
+  @@index([installmentPlanId])
+  @@index([invoiceId])
+  @@map("installments")
+}
+
+model Recurrence {
+  id             String              @id @default(uuid()) @db.Uuid
+  spaceId        String              @map("space_id") @db.Uuid
+  type           TransactionType
+  description    String
+  amount         Decimal             @db.Decimal(14, 2)
+  frequency      RecurrenceFrequency @default(MONTHLY)
+  startDate      DateTime            @map("start_date")
+  endDate        DateTime?           @map("end_date")
+  nextOccurrence DateTime?           @map("next_occurrence")
+  categoryId     String?             @map("category_id") @db.Uuid
+  accountId      String?             @map("account_id") @db.Uuid
+  creditCardId   String?             @map("credit_card_id") @db.Uuid
+  status         String              @default("ACTIVE")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  space      FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  category   Category?      @relation(fields: [categoryId], references: [id])
+  account    Account?       @relation(fields: [accountId], references: [id])
+  creditCard CreditCard?    @relation(fields: [creditCardId], references: [id])
+
+  @@index([spaceId])
+  @@map("recurrences")
+}
+
+// -----------------------------------------------------------------------------
+// Metas
+// -----------------------------------------------------------------------------
+
+model Goal {
+  id            String     @id @default(uuid()) @db.Uuid
+  spaceId       String     @map("space_id") @db.Uuid
+  name          String
+  targetAmount  Decimal    @map("target_amount") @db.Decimal(14, 2)
+  currentAmount Decimal    @default(0) @map("current_amount") @db.Decimal(14, 2)
+  targetDate    DateTime?  @map("target_date")
+  categoryId    String?    @map("category_id") @db.Uuid
+  status        GoalStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  space         FinancialSpace     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  category      Category?          @relation(fields: [categoryId], references: [id])
+  contributions GoalContribution[]
+
+  @@index([spaceId])
+  @@map("goals")
+}
+
+model GoalContribution {
+  id            String   @id @default(uuid()) @db.Uuid
+  goalId        String   @map("goal_id") @db.Uuid
+  transactionId String?  @map("transaction_id") @db.Uuid
+  amount        Decimal  @db.Decimal(14, 2)
+  date          DateTime
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  goal        Goal         @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+
+  @@index([goalId])
+  @@map("goal_contributions")
+}
+
+// -----------------------------------------------------------------------------
+// Captura — Documento → Processamento → Extração → Proposta
+// -----------------------------------------------------------------------------
+
+model Document {
+  id           String         @id @default(uuid()) @db.Uuid
+  spaceId      String         @map("space_id") @db.Uuid
+  uploadedBy   String?        @map("uploaded_by") @db.Uuid
+  documentType DocumentType   @default(UNKNOWN) @map("document_type")
+  fileName     String         @map("file_name")
+  mimeType     String         @map("mime_type")
+  storageKey   String         @map("storage_key")
+  fileSize     Int            @map("file_size")
+  checksum     String
+  status       DocumentStatus @default(UPLOADED)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  deletedAt    DateTime?      @map("deleted_at")
+
+  space    FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  uploader User?          @relation(fields: [uploadedBy], references: [id])
+
+  processings        DocumentProcessing[]
+  financialProposals FinancialProposal[]
+
+  @@index([spaceId])
+  @@map("documents")
+}
+
+model DocumentProcessing {
+  id                String            @id @default(uuid()) @db.Uuid
+  documentId        String            @map("document_id") @db.Uuid
+  processor         String
+  processorVersion  String?           @map("processor_version")
+  status            ProcessingStatus  @default(QUEUED)
+  startedAt         DateTime?         @map("started_at")
+  completedAt       DateTime?         @map("completed_at")
+  errorCode         String?           @map("error_code")
+  errorMessage      String?           @map("error_message")
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  document    Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  extractions Extraction[]
+
+  @@index([documentId])
+  @@map("document_processings")
+}
+
+model Extraction {
+  id              String   @id @default(uuid()) @db.Uuid
+  processingId    String   @map("processing_id") @db.Uuid
+  rawText         String?  @map("raw_text")
+  structuredData  Json?    @map("structured_data")
+  confidenceScore Decimal? @map("confidence_score") @db.Decimal(4, 3)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  processing DocumentProcessing @relation(fields: [processingId], references: [id], onDelete: Cascade)
+
+  financialProposals FinancialProposal[]
+
+  @@index([processingId])
+  @@map("extractions")
+}
+
+model FinancialProposal {
+  id              String          @id @default(uuid()) @db.Uuid
+  spaceId         String          @map("space_id") @db.Uuid
+  documentId      String?         @map("document_id") @db.Uuid
+  extractionId    String?         @map("extraction_id") @db.Uuid
+  type            TransactionType
+  description     String
+  amount          Decimal         @db.Decimal(14, 2)
+  date            DateTime
+  categoryId      String?         @map("category_id") @db.Uuid
+  accountId       String?         @map("account_id") @db.Uuid
+  creditCardId    String?         @map("credit_card_id") @db.Uuid
+  invoiceId       String?         @map("invoice_id") @db.Uuid
+  confidenceScore Decimal?        @map("confidence_score") @db.Decimal(4, 3)
+  status          ProposalStatus  @default(PROPOSED)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  space      FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  document   Document?      @relation(fields: [documentId], references: [id])
+  extraction Extraction?    @relation(fields: [extractionId], references: [id])
+  category   Category?      @relation(fields: [categoryId], references: [id])
+  account    Account?       @relation(fields: [accountId], references: [id])
+  creditCard CreditCard?    @relation(fields: [creditCardId], references: [id])
+  invoice    Invoice?       @relation(fields: [invoiceId], references: [id])
+
+  items ProposalItem[]
+
+  @@index([spaceId])
+  @@index([documentId])
+  @@map("financial_proposals")
+}
+
+model ProposalItem {
+  id                   String   @id @default(uuid()) @db.Uuid
+  proposalId           String   @map("proposal_id") @db.Uuid
+  description          String
+  quantity              Decimal @default(1) @db.Decimal(10, 2)
+  unitPrice             Decimal @map("unit_price") @db.Decimal(14, 2)
+  totalPrice            Decimal @map("total_price") @db.Decimal(14, 2)
+  suggestedCategoryId   String? @map("suggested_category_id") @db.Uuid
+  confirmedCategoryId   String? @map("confirmed_category_id") @db.Uuid
+  confidenceScore       Decimal? @map("confidence_score") @db.Decimal(4, 3)
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  proposal FinancialProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@index([proposalId])
+  @@map("proposal_items")
+}
+
+model DuplicateCandidate {
+  id                     String          @id @default(uuid()) @db.Uuid
+  spaceId                String          @map("space_id") @db.Uuid
+  sourceTransactionId    String          @map("source_transaction_id") @db.Uuid
+  candidateTransactionId String          @map("candidate_transaction_id") @db.Uuid
+  similarityScore        Decimal         @map("similarity_score") @db.Decimal(4, 3)
+  reason                 String?
+  status                 DuplicateStatus @default(PENDING)
+  createdAt              DateTime        @default(now()) @map("created_at")
+  resolvedAt             DateTime?       @map("resolved_at")
+
+  space               FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  sourceTransaction    Transaction    @relation("DuplicateSource", fields: [sourceTransactionId], references: [id])
+  candidateTransaction Transaction    @relation("DuplicateCandidate", fields: [candidateTransactionId], references: [id])
+
+  @@index([spaceId])
+  @@map("duplicate_candidates")
+}
+
+// -----------------------------------------------------------------------------
+// IA — Classificação, Aprendizado e Conversas
+// -----------------------------------------------------------------------------
+
+model AIClassification {
+  id              String   @id @default(uuid()) @db.Uuid
+  spaceId         String   @map("space_id") @db.Uuid
+  entityType      String   @map("entity_type")
+  entityId        String   @map("entity_id") @db.Uuid
+  model           String
+  modelVersion    String?  @map("model_version")
+  inputHash       String?  @map("input_hash")
+  suggestionType  String   @map("suggestion_type")
+  suggestedValue  Json     @map("suggested_value")
+  confidenceScore Decimal? @map("confidence_score") @db.Decimal(4, 3)
+  accepted        Boolean?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  space FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@index([spaceId])
+  @@index([entityType, entityId])
+  @@map("ai_classifications")
+}
+
+model UserLearning {
+  id                   String   @id @default(uuid()) @db.Uuid
+  spaceId              String   @map("space_id") @db.Uuid
+  patternType          String   @map("pattern_type")
+  patternKey           String   @map("pattern_key")
+  preferredCategoryId  String?  @map("preferred_category_id") @db.Uuid
+  confidence           Decimal? @db.Decimal(4, 3)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  space              FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  preferredCategory  Category?      @relation(fields: [preferredCategoryId], references: [id])
+
+  @@index([spaceId])
+  @@map("user_learnings")
+}
+
+model Conversation {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  spaceId   String   @map("space_id") @db.Uuid
+  title     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  @@index([userId])
+  @@index([spaceId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String      @id @default(uuid()) @db.Uuid
+  conversationId String      @map("conversation_id") @db.Uuid
+  role           MessageRole
+  content        String
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+// -----------------------------------------------------------------------------
+// Sistema — Notificações e Auditoria
+// -----------------------------------------------------------------------------
+
+model Notification {
+  id            String           @id @default(uuid()) @db.Uuid
+  userId        String           @map("user_id") @db.Uuid
+  spaceId       String           @map("space_id") @db.Uuid
+  type          NotificationType
+  title         String
+  message       String
+  referenceType String?          @map("reference_type")
+  referenceId   String?          @map("reference_id") @db.Uuid
+  readAt        DateTime?        @map("read_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([spaceId])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid()) @db.Uuid
+  spaceId    String      @map("space_id") @db.Uuid
+  userId     String?     @map("user_id") @db.Uuid
+  entityType String      @map("entity_type")
+  entityId   String      @map("entity_id") @db.Uuid
+  action     AuditAction
+  oldData    Json?       @map("old_data")
+  newData    Json?       @map("new_data")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  space FinancialSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user  User?           @relation(fields: [userId], references: [id])
+
+  @@index([spaceId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}

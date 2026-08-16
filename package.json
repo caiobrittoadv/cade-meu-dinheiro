@@ -1,0 +1,35 @@
+{
+  "name": "cade-meu-dinheiro",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cadê Meu Dinheiro? — organização financeira pessoal com captura inteligente de documentos.",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@11.13.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
+    "db:generate": "npm run db:generate --workspace=@cade-meu-dinheiro/api",
+    "db:migrate": "npm run db:migrate --workspace=@cade-meu-dinheiro/api",
+    "db:seed": "npm run db:seed --workspace=@cade-meu-dinheiro/api",
+    "db:reset": "npm run db:reset --workspace=@cade-meu-dinheiro/api",
+    "infra:up": "docker compose -f infrastructure/docker/docker-compose.yml --env-file .env up -d",
+    "infra:down": "docker compose -f infrastructure/docker/docker-compose.yml --env-file .env down",
+    "infra:logs": "docker compose -f infrastructure/docker/docker-compose.yml --env-file .env logs -f"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0",
+    "prettier": "^3.4.0",
+    "eslint": "^9.17.0",
+    "@eslint/js": "^9.17.0",
+    "typescript-eslint": "^8.19.0"
+  }
+}

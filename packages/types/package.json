@@ -1,0 +1,16 @@
+{
+  "name": "@cade-meu-dinheiro/types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tipos TypeScript compartilhados entre web, API e packages do Cadê Meu Dinheiro?.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "eslint": "^9.17.0"
+  }
+}
