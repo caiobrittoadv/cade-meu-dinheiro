@@ -2,7 +2,7 @@
 
 Organização financeira pessoal com captura inteligente de documentos (foto, PDF, comprovante, fatura) — o usuário não deveria precisar alimentar manualmente sua vida financeira.
 
-Este repositório está na **Fase 01 — Fundação Técnica**. Dashboard, autenticação completa, OCR, IA e demais funcionalidades de produto ainda não foram implementados: o objetivo desta fase é apenas uma base técnica reproduzível (monorepo, apps, infraestrutura local, banco e schema inicial).
+Este repositório está na **Fase 02 — Autenticação e Financial Space**. A fundação técnica (Fase 01) está concluída; agora existem cadastro/login/sessão e o isolamento por Financial Space. Contas, categorias, transactions, Financial Engine, dashboard, cartões, faturas, OCR, IA e Capture Engine ainda não foram implementados.
 
 ## Stack
 
@@ -83,23 +83,47 @@ npm run dev        # sobe web (http://localhost:3000) e api (http://localhost:30
 
 Health check da API: `GET http://localhost:3001/api/v1/health`.
 
+> A API exige PostgreSQL acessível para subir (o `PrismaService` conecta no boot). Suba a infraestrutura antes de rodar `npm run dev`.
+
+## Autenticação e Financial Space (Fase 02)
+
+Todas as rotas usam o prefixo `/api/v1`.
+
+| Rota | Método | Autenticação | Descrição |
+|---|---|---|---|
+| `/auth/register` | POST | — | Cria o usuário, hasheia a senha (bcryptjs) e já cria um Financial Space pessoal (`type: PERSONAL`) com o usuário como `OWNER`. |
+| `/auth/login` | POST | — | Autentica e retorna `{ user, accessToken, refreshToken }`. |
+| `/auth/refresh` | POST | — | Rotaciona o refresh token (revoga o antigo, emite um novo par). |
+| `/auth/logout` | POST | — | Revoga o refresh token informado. |
+| `/auth/forgot-password` | POST | — | Gera um token de reset. Sem provedor de e-mail configurado, o link é apenas **logado no console** do servidor nesta fase. Resposta idêntica exista ou não o e-mail (evita enumeração de contas). |
+| `/auth/reset-password` | POST | — | Troca a senha e revoga todas as sessões ativas do usuário. |
+| `/auth/me` | GET | Bearer | Retorna o usuário autenticado — usada para validar proteção de rota. |
+| `/spaces` | POST | Bearer | Cria um Financial Space adicional (owner = usuário autenticado). |
+| `/spaces` | GET | Bearer | Lista os Financial Spaces dos quais o usuário é membro. |
+| `/spaces/:spaceId` | GET | Bearer + `SpaceMembershipGuard` | Só retorna dados se o usuário for membro ativo daquele espaço — é o mecanismo de isolamento que todo recurso financeiro futuro (`/spaces/:spaceId/accounts`, `/transactions`, etc.) deve reutilizar. |
+
+Sessão: JWT de acesso (`AUTH_JWT_EXPIRES_IN`, padrão 15m) + refresh token opaco armazenado com hash SHA-256 no banco (`AUTH_REFRESH_TOKEN_EXPIRES_IN`, padrão 30d), revogável — por isso um logout ou reset de senha realmente invalida a sessão antes da expiração do token.
+
 ## Qualidade
 
 ```bash
 npm run lint
 npm run typecheck
-npm test
+npm test               # testes unitários (não precisam de banco)
+npm run test:e2e --workspace=@cade-meu-dinheiro/api   # precisam de Postgres via infra:up + db:migrate
 npm run build
 ```
 
-## Regras arquiteturais desta fase
+## Regras arquiteturais
 
 - UI nunca acessa o banco diretamente.
 - IA nunca acessa o banco diretamente.
 - OCR/Documento nunca cria `Transaction` diretamente — o fluxo é sempre `Documento → Processamento → Extração → Proposta → Confirmação → Motor Financeiro → Transaction`.
 - Redis nunca é fonte de verdade financeira; PostgreSQL é a única fonte primária.
 - Nenhum secret é versionado — apenas `.env.example`.
+- Nenhuma operação financeira pode acessar dados de outro Financial Space — todo recurso `:spaceId`-scoped deve usar `SpaceMembershipGuard`.
+- Senha nunca é armazenada em texto puro (bcryptjs, 12 rounds).
 
 ## Roadmap
 
-Fase 01 (esta) → Fase 02 (Autenticação + Financial Space + Contas + Categorias + Transactions + Motor Financeiro) → ... conforme o Backlog Mestre (Documento 09).
+Fase 01 (Fundação) → **Fase 02 — esta (Autenticação + Financial Space)** → Fase 03 (Contas + Categorias + Transactions + Financial Engine) → ... conforme o Backlog Mestre (Documento 09).

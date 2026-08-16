@@ -6,7 +6,9 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   {
-    ignores: [".next/**", "node_modules/**"],
+    // next-env.d.ts é gerado/gerenciado pelo próprio Next.js ("This file
+    // should not be edited") — não deve ser lintado.
+    ignores: [".next/**", "node_modules/**", "next-env.d.ts"],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
