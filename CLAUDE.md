@@ -10,13 +10,12 @@ O principal problema é a **fricção de entrada de dados**.
 
 Antes de alterar arquitetura, domínio financeiro ou fluxos de captura, consulte:
 
-1. `docs/03-prd-mvp/`
-2. `docs/04-ux-fluxos/`
-3. `docs/05-modelo-dados/`
-4. `docs/06-motor-financeiro/`
-5. `docs/07-captura-ia/`
-6. `docs/08-arquitetura/`
-
+1. `docs/03_PRD_MVP_Cade_Meu_Dinheiro_v2.md`
+2. `docs/04_Mapa_Telas_Fluxos_UX_Cade_Meu_Dinheiro.md`
+3. `docs/05_Modelo_Dados_Banco_Dados_Cade_Meu_Dinheiro.md`
+4. `docs/06_Motor_Financeiro_Regras_Negocio_Cade_Meu_Dinheiro.md`
+5. `docs/07_Motor_Captura_IA_Cade_Meu_Dinheiro.md`
+6. `docs/08_Arquitetura_Tecnica_Plano_Desenvolvimento_Cade_Meu_Dinheiro.md`
 ## Stack
 
 - Next.js + React + TypeScript
