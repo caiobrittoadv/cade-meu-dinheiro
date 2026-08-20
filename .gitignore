@@ -41,3 +41,6 @@ infrastructure/redis-data/
 *.pem
 *.key
 secrets/
+
+*storybook.log
+storybook-static
