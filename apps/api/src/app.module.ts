@@ -9,6 +9,8 @@ import { AccountsModule } from "./accounts/accounts.module";
 import { CategoriesModule } from "./categories/categories.module";
 import { TransactionsModule } from "./transactions/transactions.module";
 import { FinancialEngineModule } from "./financial-engine/financial-engine.module";
+import { CardsModule } from "./cards/cards.module";
+import { InvoicesModule } from "./invoices/invoices.module";
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { FinancialEngineModule } from "./financial-engine/financial-engine.modul
     CategoriesModule,
     TransactionsModule,
     FinancialEngineModule,
+    CardsModule,
+    InvoicesModule,
   ],
 })
 export class AppModule {}
