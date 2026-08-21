@@ -1,3 +1,5 @@
-// Reservado para os conceitos e regras do Motor Financeiro (Documento 06).
-// O Financial Engine NÃO é implementado nesta fase (F01 — Fundação).
-export {};
+// Conceitos e regras do Motor Financeiro (Documento 06).
+// Núcleo (E10): cálculo de saldo por conta e saldo consolidado.
+export { calculateAccountBalance, calculateConsolidatedBalance } from "./balance";
+export type { BalanceAccountInput, BalanceTransactionInput } from "./balance";
+export { toCents, fromCents } from "./money";

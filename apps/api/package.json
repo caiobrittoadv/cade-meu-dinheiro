@@ -17,6 +17,7 @@
     "db:reset": "prisma migrate reset --schema=prisma/schema.prisma"
   },
   "dependencies": {
+    "@cade-meu-dinheiro/financial-domain": "*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
