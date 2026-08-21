@@ -183,7 +183,7 @@ function SummaryCard({
       <div style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)", marginBottom: "var(--space-2)" }}>
         {label}
       </div>
-      <MoneyDisplay amount={amount} tone={tone} size="lg" />
+      <MoneyDisplay amount={amount} tone={tone} size="md" />
     </Card>
   );
 }

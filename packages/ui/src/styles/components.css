@@ -465,6 +465,7 @@
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: var(--color-text-primary);
+  white-space: nowrap;
 }
 .cmd-money--positive {
   color: var(--color-success);
