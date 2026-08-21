@@ -1,0 +1,737 @@
+/*
+ * Estilos dos componentes do Design System — consome exclusivamente os
+ * tokens de tokens.css (nenhum HEX literal aqui).
+ */
+
+/* ---------- Button ---------- */
+.cmd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.2s var(--ease-premium),
+    border-color 0.2s var(--ease-premium),
+    color 0.2s var(--ease-premium),
+    opacity 0.2s var(--ease-premium),
+    transform 0.2s var(--ease-premium),
+    box-shadow 0.2s var(--ease-premium);
+  white-space: nowrap;
+}
+.cmd-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.cmd-btn:active:not(:disabled) {
+  /* Mais rápido que a transição base (200ms): feedback de clique precisa
+     ser instantâneo, não competir com a velocidade do hover. */
+  transition: transform 0.12s var(--ease-premium);
+  transform: scale(0.97);
+}
+.cmd-btn--sm {
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+}
+.cmd-btn--md {
+  height: 40px;
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-md);
+}
+.cmd-btn--lg {
+  height: 48px;
+  padding: 0 var(--space-6);
+  font-size: var(--font-size-lg);
+}
+.cmd-btn--primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+/* :hover atrás de (hover: hover) — em touchscreen, :hover puro fica "preso"
+   depois do toque, simulando um hover que nunca termina. */
+@media (hover: hover) and (pointer: fine) {
+  .cmd-btn--primary:not(:disabled):hover {
+    background: var(--color-primary-deep);
+    transform: translateY(-1px);
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--color-primary) 18%, transparent),
+      0 8px 20px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  }
+}
+.cmd-btn--secondary {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+.cmd-btn--secondary:not(:disabled):hover {
+  background: var(--color-neutral-soft);
+  border-color: var(--color-text-secondary);
+}
+.cmd-btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.cmd-btn--ghost:not(:disabled):hover {
+  background: var(--color-neutral-soft);
+  color: var(--color-text-primary);
+}
+.cmd-btn--danger {
+  background: var(--color-danger-strong);
+  color: var(--color-text-inverse);
+}
+.cmd-btn--danger:not(:disabled):hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* ---------- Input / Select ---------- */
+.cmd-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
+.cmd-label {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.cmd-input,
+.cmd-select {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  background: var(--color-background);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  height: 44px;
+  padding: 0 var(--space-4);
+  width: 100%;
+  transition:
+    border-color 0.2s var(--ease-premium),
+    box-shadow 0.2s var(--ease-premium),
+    background-color 0.2s var(--ease-premium);
+}
+.cmd-input:focus,
+.cmd-select:focus {
+  outline: none;
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-soft);
+}
+.cmd-input--error,
+.cmd-select--error {
+  border-color: var(--color-danger);
+}
+.cmd-input--error:focus,
+.cmd-select--error:focus {
+  box-shadow: 0 0 0 3px var(--color-danger-soft);
+}
+.cmd-input:disabled,
+.cmd-select:disabled {
+  background: var(--color-neutral-soft);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+.cmd-helper {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+.cmd-helper--error {
+  color: var(--color-danger);
+}
+
+/* ---------- Card ---------- */
+/* Sem borda: a definição da borda vem de --ring-hairline (1px via
+   box-shadow, não `border`) somada à elevação em duas camadas de
+   --shadow-sm — evita o padrão genérico "borda + sombra + fundo branco"
+   enquanto ainda dá contorno nítido. */
+.cmd-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--ring-hairline), var(--shadow-sm);
+  transition:
+    box-shadow 0.25s var(--ease-premium),
+    transform 0.25s var(--ease-premium);
+}
+.cmd-card--padded {
+  padding: var(--space-6);
+}
+/* Usada em cards clicáveis/selecionáveis (ex.: lista de faturas, cartões). */
+@media (hover: hover) and (pointer: fine) {
+  .cmd-card--interactive:hover {
+    box-shadow: var(--ring-hairline), var(--shadow-md);
+    transform: translateY(-2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmd-card--interactive:hover {
+    transform: none;
+  }
+}
+
+/* ---------- Badge / StatusBadge ---------- */
+.cmd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.cmd-badge--neutral {
+  background: var(--color-neutral-soft);
+  color: var(--color-text-secondary);
+}
+.cmd-badge--primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-light);
+}
+.cmd-badge--success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.cmd-badge--danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.cmd-badge--warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+/* ---------- Modal / Dialog ---------- */
+.cmd-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 13, 18, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: var(--z-modal);
+  animation: cmd-overlay-in 0.2s var(--ease-premium);
+}
+/* Saída: mais rápida que a entrada (200ms → 180ms) — decidir demora,
+   responder é instantâneo. O componente controla o unmount via JS
+   (ver Modal.tsx), esperando esta animação terminar. */
+.cmd-modal-overlay--closing {
+  animation: cmd-overlay-out 0.18s var(--ease-premium) forwards;
+}
+.cmd-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: cmd-modal-in 0.35s var(--ease-premium);
+}
+.cmd-modal--closing {
+  animation: cmd-modal-out 0.18s var(--ease-premium) forwards;
+}
+@keyframes cmd-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes cmd-overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes cmd-modal-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@keyframes cmd-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmd-modal-overlay,
+  .cmd-modal,
+  .cmd-modal-overlay--closing,
+  .cmd-modal--closing {
+    animation: none;
+  }
+}
+.cmd-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+.cmd-modal-title {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.cmd-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  padding: var(--space-1);
+}
+.cmd-modal-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.cmd-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ---------- Table ---------- */
+.cmd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+}
+/* Entrada nativa via @starting-style: cobre tanto o carregamento inicial
+   quanto a troca de filtro (ex.: Transações) sem precisar de JS/stagger
+   manual — linhas que somem/aparecem sem transição parecem quebradas. */
+.cmd-table tbody tr {
+  transition:
+    opacity 0.2s var(--ease-premium),
+    transform 0.2s var(--ease-premium);
+}
+@starting-style {
+  .cmd-table tbody tr {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmd-table tbody tr {
+    transition: opacity 0.2s ease;
+  }
+  @starting-style {
+    .cmd-table tbody tr {
+      transform: none;
+    }
+  }
+}
+.cmd-table th {
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.cmd-table td {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+.cmd-table tr:last-child td {
+  border-bottom: none;
+}
+.cmd-table--clickable tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease-premium);
+}
+.cmd-table--clickable tbody tr:hover {
+  background: var(--color-background);
+}
+.cmd-table--clickable tbody tr:active {
+  background: var(--color-primary-soft);
+}
+
+/* ---------- EmptyState / LoadingState ---------- */
+.cmd-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-6);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+}
+.cmd-empty-state-icon {
+  font-size: 32px;
+  margin-bottom: var(--space-2);
+}
+.cmd-empty-state-title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.cmd-empty-state-description {
+  font-size: var(--font-size-md);
+  max-width: 360px;
+}
+
+.cmd-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-6);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+}
+.cmd-spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  border-top-color: var(--color-primary);
+  animation: cmd-spin 0.7s linear infinite;
+}
+@keyframes cmd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Skeleton ---------- */
+/* Loader no formato do conteúdo real (linha de tabela, card), em vez de um
+   spinner genérico centralizado — usado nas telas de lista/tabela. */
+.cmd-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-soft) 25%,
+    var(--color-border) 37%,
+    var(--color-neutral-soft) 63%
+  );
+  background-size: 400% 100%;
+  border-radius: var(--radius-sm);
+  /* linear, não ease: é movimento constante em loop (mesma categoria de
+     marquee/progress bar) — ease faria o brilho acelerar/desacelerar de
+     forma irregular a cada ciclo. */
+  animation: cmd-skeleton-shimmer 1.4s linear infinite;
+}
+@keyframes cmd-skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmd-skeleton {
+    animation: none;
+    background-position: 50% 50%;
+  }
+  .cmd-spinner {
+    animation-duration: 1.4s;
+  }
+}
+
+/* ---------- MoneyDisplay ---------- */
+.cmd-money {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.cmd-money--positive {
+  color: var(--color-success);
+}
+.cmd-money--negative {
+  color: var(--color-danger);
+}
+.cmd-money--muted {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+/* ---------- Sidebar ---------- */
+.cmd-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 264px;
+  min-width: 264px;
+  height: 100%;
+  background: var(--color-surface);
+  box-shadow: var(--ring-hairline);
+  padding: var(--space-6) var(--space-4);
+  font-family: var(--font-sans);
+  position: relative;
+  z-index: 10;
+}
+.cmd-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  margin-bottom: var(--space-8);
+}
+.cmd-sidebar-brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: var(--font-size-md);
+  flex-shrink: 0;
+}
+.cmd-sidebar-brand-name {
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+.cmd-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  overflow-y: auto;
+}
+.cmd-sidebar-section-label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--space-4) var(--space-2) var(--space-1);
+}
+.cmd-sidebar-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background-color 0.2s var(--ease-premium),
+    color 0.2s var(--ease-premium);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cmd-sidebar-item:hover {
+    background: var(--color-background);
+    color: var(--color-text-primary);
+  }
+}
+.cmd-sidebar-item:active {
+  background: var(--color-primary-soft);
+}
+.cmd-sidebar-item--active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-light);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+.cmd-sidebar-item--disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+.cmd-sidebar-item-icon {
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.cmd-sidebar-item-soon {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  background: var(--color-neutral-soft);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- Header ---------- */
+.cmd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: 76px;
+  min-height: 76px;
+  padding: 0 var(--space-8);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--ring-hairline);
+  font-family: var(--font-sans);
+  position: relative;
+  z-index: 10;
+}
+.cmd-header-menu-button {
+  display: none;
+  background: var(--color-background);
+  border: none;
+  border-radius: var(--radius-full);
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  transition: background-color 0.2s var(--ease-premium);
+}
+.cmd-header-menu-button:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-light);
+}
+.cmd-header-space-selector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-background);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease-premium);
+}
+.cmd-header-space-selector:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-light);
+}
+.cmd-header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.cmd-header-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+.cmd-header-user-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+.cmd-header-user-email {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* ---------- Utilitário: botão sem estilo de navegador, mas com foco visível ---------- */
+/* Alternativa a `all: unset`, que remove também o anel de foco do teclado. */
+.cmd-unstyled-button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.cmd-unstyled-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* ---------- Utilitário: destaque "hero" com glow de marca ---------- */
+/* Usar com moderação — 1 elemento por tela (ex.: card de saldo total). */
+.cmd-hero-glow {
+  background: var(--glow-primary), var(--color-surface);
+}
+
+/* ---------- Fundo ambiente do App Shell ---------- */
+/* Camada fixa atrás de sidebar/header/main: substitui o cinza chapado por
+   glow de marca + grão sutil. position:fixed em vez de acompanhar o scroll
+   de `main` — não repinta durante scroll, custo de composição único. */
+.cmd-app-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--color-background);
+  background-image: var(--bg-ambient-glow);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.cmd-app-ambient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--bg-noise);
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+
+/* ---------- Responsividade do App Shell ---------- */
+@media (max-width: 900px) {
+  .cmd-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--z-sidebar);
+    transform: translateX(-100%);
+    transition: transform 0.25s var(--ease-premium);
+    box-shadow: var(--shadow-md);
+  }
+  .cmd-sidebar--open {
+    transform: translateX(0);
+  }
+  .cmd-header-menu-button {
+    display: inline-flex;
+  }
+  .cmd-header-space-selector .cmd-header-space-label {
+    display: none;
+  }
+}

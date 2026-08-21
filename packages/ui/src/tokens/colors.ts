@@ -4,21 +4,16 @@
 
 export const colors = {
   purple: {
-    primary: "#6C3BFF", // Purple C.M.D. — logo, botões primários, links, IA
-    deep: "#4B22B8", // Purple Deep — hover, pressed, gradientes
-    soft: "#EDE7FF", // Purple Soft — backgrounds, cards informativos, badges
+    primary: "#8A05BE", // Roxo Nubank — logo, botões primários, links, IA
+    deep: "#650488", // Purple Deep — hover/pressed de elementos sólidos
+    light: "#C77DFF", // Purple Light — texto/ícone sobre fundos "soft" no tema escuro
+    soft: "#2A1240", // Purple Soft — backgrounds de chip/badge/item ativo (tema escuro)
   },
   dark: {
-    obsidian: "#0D0D12", // fundo principal (dark)
+    obsidian: "#0D0D12", // fundo principal — único tema da aplicação
     graphite: "#17171F", // superfícies: cards, sidebar, modais, inputs
-    graphiteLight: "#24242E", // bordas, divisores, hover
+    graphiteLight: "#29293A", // bordas, divisores, hover
     white: "#FFFFFF", // títulos, números financeiros, alto contraste
-  },
-  light: {
-    offWhite: "#F7F7FA", // fundo principal (light)
-    white: "#FFFFFF", // cards e superfícies
-    ink: "#17171F", // texto principal
-    slate: "#6F7180", // texto secundário
   },
 } as const;
 

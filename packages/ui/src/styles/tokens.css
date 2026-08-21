@@ -1,0 +1,138 @@
+/*
+ * Design tokens — Cadê Meu Dinheiro?
+ * Fonte: docs/02_Brandbook_Cade_Meu_Dinheiro.md (spacing/radius/tipografia/
+ * semânticas de status financeiro) + decisão explícita do usuário (roxo de
+ * marca e tema escuro como padrão único do app — não segue mais
+ * prefers-color-scheme, é a identidade visual escolhida).
+ *
+ * Regra CLAUDE.md: nunca espalhar HEX diretamente nos componentes quando
+ * existir token equivalente — todo componente deste pacote consome estas
+ * variáveis, nunca um valor de cor literal.
+ */
+
+:root {
+  /* Marca — Roxo Nubank, escolhido explicitamente no lugar do Purple C.M.D.
+     original (#6C3BFF). --primary-deep é o tom mais escuro (hover/pressed
+     de elementos sólidos); --primary-light é o tom mais claro, usado como
+     texto/ícone sobre fundos "soft" no tema escuro — funções distintas,
+     por isso dois tokens em vez de reaproveitar --primary-deep nos dois papéis. */
+  --color-primary: #8a05be;
+  --color-primary-deep: #650488;
+  --color-primary-light: #c77dff;
+  --color-primary-soft: #2a1240;
+
+  /* Superfícies (escuro — único tema da aplicação, por decisão do usuário) */
+  --color-background: #0d0d12;
+  --color-surface: #17171f;
+  --color-surface-hover: #201f2b;
+  --color-border: #29293a;
+  --color-border-strong: #34344a;
+
+  /* Texto */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9a9aa8;
+  --color-text-inverse: #ffffff;
+
+  /* Semânticas financeiras — não definidas no brandbook, necessárias para
+     representar receita/despesa/pendência sem usar HEX solto nos telas.
+     Tons "soft" calibrados para o fundo escuro (mesmos valores que antes
+     só existiam sob prefers-color-scheme: dark). */
+  --color-success: #22c55e;
+  --color-success-soft: #103322;
+  --color-danger: #f87171;
+  --color-danger-strong: #b91c1c; /* fundo sólido de botão — precisa ser escuro o bastante para texto branco */
+  --color-danger-soft: #3a1414;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #3a2a0a;
+  --color-neutral-soft: #1c1c26;
+
+  /* Espaçamento — inclui a faixa "macro" (space-20/24) para respiro real
+     entre seções, sem ir ao exagero de página de marketing. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Raio — mais generoso e macio (squircle-like), consistente em toda a UI. */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 999px;
+
+  /* Sombra em duas camadas (perto + longe) neutra em preto — em fundo
+     escuro, sombra tingida de roxo se confunde com o glow ambiente; quem dá
+     a assinatura de marca ao elevar um card é o --shadow-glow opcional
+     (3ª camada, só em md/lg), não a sombra inteira. */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 16px 36px rgba(0, 0, 0, 0.45),
+    0 0 32px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --shadow-lg:
+    0 4px 10px rgba(0, 0, 0, 0.35),
+    0 24px 56px rgba(0, 0, 0, 0.5),
+    0 0 48px color-mix(in srgb, var(--color-primary) 12%, transparent);
+  /* Hairline: contorno de 1px via box-shadow (não border), define a borda
+     do card sem reintroduzir o padrão genérico "border + shadow". Em
+     branco a baixa opacidade — sobre superfície escura, um hairline preto
+     (como no tema claro original) seria invisível. */
+  --ring-hairline: 0 0 0 1px color-mix(in srgb, white 8%, transparent);
+
+  /* Curva de easing única para toda a UI — física de mola sutil, nunca
+     linear/ease-in-out padrão. */
+  --ease-premium: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Glow radial de marca — para dar destaque de "hero" sem virar neon. */
+  --glow-primary: radial-gradient(
+    120% 120% at 20% 0%,
+    var(--color-primary-soft) 0%,
+    transparent 60%
+  );
+
+  /* Fundo ambiente do app shell: glow radial sutil (derivado de
+     --color-primary via color-mix, nunca HEX repetido) + grão fino via SVG
+     turbulence. Fixo atrás do conteúdo — é o que dá profundidade ao fundo
+     (--color-background sozinho seria chapado), sem virar decoração
+     vistosa (opacidades baixas; modo Operate, não landing page). */
+  --bg-ambient-glow:
+    radial-gradient(
+      900px 560px at 10% -10%,
+      color-mix(in srgb, var(--color-primary) 16%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 480px at 100% 0%,
+      color-mix(in srgb, var(--color-primary) 10%, transparent) 0%,
+      transparent 55%
+    );
+  --bg-noise: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='180'%20height='180'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='3'%20stitchTiles='stitch'%3E%3C/feTurbulence%3E%3CfeColorMatrix%20type='matrix'%20values='0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.05%200'%3E%3C/feColorMatrix%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23n)'%3E%3C/rect%3E%3C/svg%3E");
+
+  /* Escala de z-index — evita valores ad-hoc espalhados pelo app shell. */
+  --z-overlay: 80;
+  --z-sidebar: 90;
+  --z-modal: 100;
+
+  /* Tipografia — fallback genérico do design system. Um app consumidor
+     (ex.: apps/web) pode sobrescrever --font-sans com uma fonte com mais
+     caráter, definindo a variável antes de importar este arquivo. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 22px;
+  --font-size-2xl: 32px;
+  --font-size-3xl: 44px;
+}

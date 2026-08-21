@@ -103,7 +103,12 @@ O projeto pode ser público, mas dados reais nunca devem entrar no repositório.
 
 ## Design System
 
-Cor primária oficial: `#6C3BFF` — Roxo C.M.D.
+Cor primária oficial: `#8A05BE` — Roxo Nubank (trocada a pedido explícito do
+usuário em 2026-08-21; era `#6C3BFF` — Purple C.M.D. — antes disso).
+
+Tema escuro é o único tema da aplicação (não segue `prefers-color-scheme`,
+é a identidade visual escolhida — não reintroduzir tema claro sem pedido
+explícito).
 
 Nunca espalhar HEX diretamente nos componentes quando existir token correspondente.
 

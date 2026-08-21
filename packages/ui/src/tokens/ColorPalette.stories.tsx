@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { colors } from "./colors";
 
 function Swatch({ name, hex }: { name: string; hex: string }) {
-  const isLight = hex === "#FFFFFF" || hex === "#F7F7FA" || hex === "#EDE7FF";
+  const isLight = hex === "#FFFFFF" || hex === "#C77DFF";
   return (
     <div style={{ display: "flex", flexDirection: "column", width: 160 }}>
       <div
@@ -48,9 +48,8 @@ function Group({ title, entries }: { title: string; entries: [string, string][] 
 function Palette() {
   return (
     <div style={{ padding: 24 }}>
-      <Group title="Purple C.M.D. (cor primária)" entries={Object.entries(colors.purple)} />
-      <Group title="Paleta Dark" entries={Object.entries(colors.dark)} />
-      <Group title="Paleta Light" entries={Object.entries(colors.light)} />
+      <Group title="Roxo Nubank (cor primária)" entries={Object.entries(colors.purple)} />
+      <Group title="Paleta escura (tema único)" entries={Object.entries(colors.dark)} />
     </div>
   );
 }
